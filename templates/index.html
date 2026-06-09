@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Pricing Calculator</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+    <main class="app-shell">
+        <section class="hero glass">
+            <h1>Pricing Calculator</h1>
+        </section>
+
+        <section class="tabs glass">
+            <button class="tab-button active" data-tab="sqft-tab">SqFt Pricing</button>
+            <button class="tab-button" data-tab="letters-tab">Letters Pricing</button>
+            <button class="tab-button" data-tab="settings-tab">Settings</button>
+        </section>
+
+        <section id="sqft-tab" class="tab-panel active glass">
+            <h2>SqFt Calculator</h2>
+
+            <label for="materialSearch">Material Search</label>
+            <div class="material-search-wrap">
+                <input id="materialSearch" autocomplete="off" placeholder="Example: IJ180, Orafol, Laminate">
+                <div id="materialDropdown" class="material-dropdown hidden"></div>
+            </div>
+
+            <div class="grid two">
+                <div>
+                    <label for="rollCost">Roll Cost ($)</label>
+                    <input id="rollCost" class="scroll-number" type="number" step="1" min="0" placeholder="750">
+                </div>
+
+                <div>
+                    <label for="rollWidth">Roll Width (inches)</label>
+                    <input id="rollWidth" class="scroll-number" type="number" step="1" min="0" placeholder="54">
+                </div>
+
+                <div>
+                    <label for="rollLength">Roll Length (feet)</label>
+                    <input id="rollLength" class="scroll-number" type="number" step="1" min="0" placeholder="150">
+                </div>
+
+                <div>
+                    <label for="markupSearch">Markup</label>
+                    <div class="markup-search-wrap">
+                        <button id="markupButton" class="markup-button" type="button">Standard / 3x</button>
+                        <div id="markupDropdown" class="markup-dropdown hidden"></div>
+                    </div>
+                </div>
+
+                <div id="customMarkupWrap" class="hidden">
+                    <label for="customMarkup">Custom Markup</label>
+                    <input id="customMarkup" class="scroll-number" type="number" step="1" min="0" placeholder="2.5">
+                </div>
+
+                <div>
+                    <label for="jobWidth">Job Width (feet)</label>
+                    <input id="jobWidth" class="scroll-number" type="number" step="1" min="0" placeholder="4">
+                </div>
+
+                <div>
+                    <label for="jobHeight">Job Height (feet)</label>
+                    <input id="jobHeight" class="scroll-number" type="number" step="1" min="0" placeholder="8">
+                </div>
+
+                <div>
+                    <label for="extraFees">Extra Fees / Labor ($)</label>
+                    <input id="extraFees" class="scroll-number" type="number" step="1" min="0" value="0">
+                </div>
+            </div>
+
+            <div class="checkbox-row">
+                <label class="checkbox-card" for="cutAddOn">
+                    <input id="cutAddOn" type="checkbox">
+                    <span>
+                        <strong>Cut?</strong>
+                        Adds 1 ft to width and 1 ft to height, plus saved cut rate per sqft.
+                    </span>
+                </label>
+
+                <label class="checkbox-card" for="laminated">
+                    <input id="laminated" type="checkbox">
+                    <span>
+                        <strong>Laminated?</strong>
+                        Adds saved laminate rate per sqft.
+                    </span>
+                </label>
+            </div>
+
+            <button id="calculateSqft" class="primary-button">Calculate SqFt Price</button>
+
+            <div class="results">
+                <div>
+                    <span>Roll SqFt</span>
+                    <strong id="rollSqftResult">0 sqft</strong>
+                </div>
+                <div>
+                    <span>Material Cost / SqFt</span>
+                    <strong id="costPerSqftResult">$0.00</strong>
+                </div>
+                <div>
+                    <span>Base Sell Price / SqFt</span>
+                    <strong id="baseSellPerSqftResult">$0.00</strong>
+                </div>
+                <div>
+                    <span>Laminate Add-On / SqFt</span>
+                    <strong id="laminateAddonResult">$0.00</strong>
+                </div>
+                <div>
+                    <span>Cut Add-On / SqFt</span>
+                    <strong id="cutAddonResult">$0.00</strong>
+                </div>
+                <div>
+                    <span>Final Sell Price / SqFt</span>
+                    <strong id="sellPerSqftResult">$0.00</strong>
+                </div>
+                <div>
+                    <span>Billable Size</span>
+                    <strong id="billableSizeResult">0 ft × 0 ft</strong>
+                </div>
+                <div>
+                    <span>Billable SqFt</span>
+                    <strong id="billableSqftResult">0 sqft</strong>
+                </div>
+                <div class="total">
+                    <span>Total Price</span>
+                    <strong id="sqftTotalResult">$0.00</strong>
+                </div>
+            </div>
+        </section>
+
+        <section id="letters-tab" class="tab-panel glass">
+            <h2>Letters Calculator</h2>
+
+            <div class="grid two">
+                <div>
+                    <label for="letterCount">Number of Letters</label>
+                    <input id="letterCount" class="scroll-number" type="number" step="1" min="0" placeholder="20">
+                </div>
+
+                <div>
+                    <label for="pricePerLetter">Price Per Letter ($)</label>
+                    <input id="pricePerLetter" class="scroll-number" type="number" step="1" min="0" placeholder="8">
+                </div>
+
+                <div>
+                    <label for="letterInstallFee">Install / Labor Fee ($)</label>
+                    <input id="letterInstallFee" class="scroll-number" type="number" step="1" min="0" value="0">
+                </div>
+            </div>
+
+            <button id="calculateLetters" class="primary-button">Calculate Letter Price</button>
+
+            <div class="results">
+                <div>
+                    <span>Letters Subtotal</span>
+                    <strong id="lettersSubtotalResult">$0.00</strong>
+                </div>
+                <div>
+                    <span>Install / Labor</span>
+                    <strong id="lettersInstallResult">$0.00</strong>
+                </div>
+                <div class="total">
+                    <span>Total Price</span>
+                    <strong id="lettersTotalResult">$0.00</strong>
+                </div>
+            </div>
+        </section>
+
+        <section id="settings-tab" class="tab-panel glass">
+            <h2>Settings</h2>
+
+            <section class="settings-block">
+                <h3>Pricing Add-Ons</h3>
+
+                <div class="grid two">
+                    <div>
+                        <label for="settingsLaminateRate">Laminate Add-On ($/sqft)</label>
+                        <input id="settingsLaminateRate" class="scroll-number" type="number" step="1" min="0">
+                    </div>
+
+                    <div>
+                        <label for="settingsCutRate">Cut Add-On ($/sqft)</label>
+                        <input id="settingsCutRate" class="scroll-number" type="number" step="1" min="0">
+                    </div>
+                </div>
+
+                <button id="saveSettings" class="primary-button">Save Add-On Settings</button>
+                <p id="settingsStatus" class="status-message"></p>
+            </section>
+
+            <section class="settings-block">
+                <h3>Add / Update Material</h3>
+                <input id="editingOriginalMaterialName" type="hidden">
+
+                <div class="grid two">
+                    <div>
+                        <label for="materialName">Material Name</label>
+                        <input id="materialName" placeholder="Example: 3M IJ180">
+                    </div>
+
+                    <div>
+                        <label for="materialCategory">Category</label>
+                        <input id="materialCategory" placeholder="Printable Vinyl">
+                    </div>
+
+                    <div>
+                        <label for="materialRollCost">Roll Cost ($)</label>
+                        <input id="materialRollCost" class="scroll-number" type="number" step="1" min="0">
+                    </div>
+
+                    <div>
+                        <label for="materialRollWidth">Roll Width (inches)</label>
+                        <input id="materialRollWidth" class="scroll-number" type="number" step="1" min="0">
+                    </div>
+
+                    <div>
+                        <label for="materialRollLength">Roll Length (feet)</label>
+                        <input id="materialRollLength" class="scroll-number" type="number" step="1" min="0">
+                    </div>
+                </div>
+
+                <div class="button-row">
+                    <button id="saveMaterial" class="primary-button">Save Material</button>
+                    <button id="clearMaterialForm" class="small-button" type="button">Clear / New Material</button>
+                </div>
+                <p id="materialStatus" class="status-message"></p>
+            </section>
+
+            <section class="settings-block">
+                <h3>Material List</h3>
+                <div id="materialList" class="material-list"></div>
+            </section>
+        </section>
+    </main>
+
+    <script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

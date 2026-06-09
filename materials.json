@@ -1,0 +1,32 @@
+{
+    "3M IJ180": {
+        "category": "Printable Vinyl",
+        "roll_cost": 850.0,
+        "roll_width_inches": 54.0,
+        "roll_length_feet": 150.0
+    },
+    "3M 680 CR": {
+        "category": "Cast Vinyl",
+        "roll_cost": 700.0,
+        "roll_width_inches": 54.0,
+        "roll_length_feet": 150.0
+    },
+    "3M 2080 Wrap Film": {
+        "category": "Color Change Vinyl",
+        "roll_cost": 980,
+        "roll_width_inches": 60,
+        "roll_length_feet": 75
+    },
+    "Orafol 651 Black": {
+        "category": "Cast Vinyl",
+        "roll_cost": 600.0,
+        "roll_width_inches": 54.0,
+        "roll_length_feet": 150.0
+    },
+    "Orafol 751": {
+        "category": "Printable Vinyl",
+        "roll_cost": 420.0,
+        "roll_width_inches": 54.0,
+        "roll_length_feet": 150.0
+    }
+}
