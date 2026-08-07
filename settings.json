@@ -1,4 +1,4 @@
 {
-    "laminate_addon_per_sqft": 13,
+    "laminate_addon_per_sqft": 13.0,
     "cut_addon_per_sqft": 8.5
 }

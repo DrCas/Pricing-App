@@ -10,18 +10,12 @@
 <body>
 
     <main class="app-shell">
-        <section class="hero glass">
-            <h1>Pricing Calculator</h1>
-        </section>
-
-        <section class="tabs glass">
-            <button class="tab-button active" data-tab="sqft-tab">SqFt Pricing</button>
-            <button class="tab-button" data-tab="letters-tab">Letters Pricing</button>
-            <button class="tab-button" data-tab="settings-tab">Settings</button>
-        </section>
-
         <section id="sqft-tab" class="tab-panel active glass">
-            <h2>SqFt Calculator</h2>
+            <div class="calculator-header">
+                <div>
+                    <h2>SqFt Calculator</h2>
+                </div>
+            </div>
 
             <label for="materialSearch">Material Search</label>
             <div class="material-search-wrap">
@@ -29,7 +23,7 @@
                 <div id="materialDropdown" class="material-dropdown hidden"></div>
             </div>
 
-            <div class="grid two">
+            <div class="grid three">
                 <div>
                     <label for="rollCost">Roll Cost ($)</label>
                     <input id="rollCost" class="scroll-number" type="number" step="1" min="0" placeholder="750">
@@ -43,19 +37,6 @@
                 <div>
                     <label for="rollLength">Roll Length (feet)</label>
                     <input id="rollLength" class="scroll-number" type="number" step="1" min="0" placeholder="150">
-                </div>
-
-                <div>
-                    <label for="markupSearch">Markup</label>
-                    <div class="markup-search-wrap">
-                        <button id="markupButton" class="markup-button" type="button">Standard / 3x</button>
-                        <div id="markupDropdown" class="markup-dropdown hidden"></div>
-                    </div>
-                </div>
-
-                <div id="customMarkupWrap" class="hidden">
-                    <label for="customMarkup">Custom Markup</label>
-                    <input id="customMarkup" class="scroll-number" type="number" step="1" min="0" placeholder="2.5">
                 </div>
 
                 <div>
@@ -74,25 +55,47 @@
                 </div>
             </div>
 
-            <div class="checkbox-row">
-                <label class="checkbox-card" for="cutAddOn">
-                    <input id="cutAddOn" type="checkbox">
-                    <span>
-                        <strong>Cut?</strong>
-                        Adds 1 ft to width and 1 ft to height, plus saved cut rate per sqft.
-                    </span>
-                </label>
+            <div class="grid two">
+                <div>
+                    <label for="markupSearch">Markup</label>
+                    <div class="markup-search-wrap">
+                        <button id="markupButton" class="markup-button" type="button">Standard / 3x</button>
+                        <div id="markupDropdown" class="markup-dropdown hidden"></div>
+                    </div>
+                </div>
 
-                <label class="checkbox-card" for="laminated">
-                    <input id="laminated" type="checkbox">
-                    <span>
-                        <strong>Laminated?</strong>
-                        Adds saved laminate rate per sqft.
-                    </span>
-                </label>
+                <div>
+                    <label for="jobOptionSelect">Job Option</label>
+                    <select id="jobOptionSelect" class="scroll-number">
+                        <option value="none">None</option>
+                        <option value="cut">Cut only</option>
+                        <option value="laminate">Laminate only</option>
+                        <option value="cutlam">Cut + Laminate</option>
+                    </select>
+                </div>
             </div>
 
-            <button id="calculateSqft" class="primary-button">Calculate SqFt Price</button>
+            <div id="customMarkupWrap" class="hidden">
+                <label for="customMarkup">Custom Markup</label>
+                <input id="customMarkup" class="scroll-number" type="number" step="1" min="0" placeholder="2.5">
+            </div>
+
+            <div id="laminationOptions" class="hidden">
+                <div class="grid two">
+                    <div>
+                        <label for="laminationSelect">Lamination Type</label>
+                        <select id="laminationSelect"></select>
+                    </div>
+                    <div class="lamination-info">
+                        <div id="laminationDetails" class="lamination-details"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="button-row compact-row settings-row">
+                <button id="calculateSqft" class="primary-button">Calculate</button>
+                <button id="openSettings" class="secondary-button" type="button">Settings</button>
+            </div>
 
             <div class="results">
                 <div>
@@ -134,46 +137,16 @@
             </div>
         </section>
 
-        <section id="letters-tab" class="tab-panel glass">
-            <h2>Letters Calculator</h2>
-
-            <div class="grid two">
-                <div>
-                    <label for="letterCount">Number of Letters</label>
-                    <input id="letterCount" class="scroll-number" type="number" step="1" min="0" placeholder="20">
-                </div>
-
-                <div>
-                    <label for="pricePerLetter">Price Per Letter ($)</label>
-                    <input id="pricePerLetter" class="scroll-number" type="number" step="1" min="0" placeholder="8">
-                </div>
-
-                <div>
-                    <label for="letterInstallFee">Install / Labor Fee ($)</label>
-                    <input id="letterInstallFee" class="scroll-number" type="number" step="1" min="0" value="0">
-                </div>
-            </div>
-
-            <button id="calculateLetters" class="primary-button">Calculate Letter Price</button>
-
-            <div class="results">
-                <div>
-                    <span>Letters Subtotal</span>
-                    <strong id="lettersSubtotalResult">$0.00</strong>
-                </div>
-                <div>
-                    <span>Install / Labor</span>
-                    <strong id="lettersInstallResult">$0.00</strong>
-                </div>
-                <div class="total">
-                    <span>Total Price</span>
-                    <strong id="lettersTotalResult">$0.00</strong>
-                </div>
-            </div>
-        </section>
-
         <section id="settings-tab" class="tab-panel glass">
-            <h2>Settings</h2>
+            <div class="settings-top">
+                <div>
+                    <h2>Settings</h2>
+                    <p class="subtitle">Update pricing addons, materials, and laminations.</p>
+                </div>
+                <div class="settings-actions">
+                    <button id="backToCalculator" class="secondary-button" type="button">Back</button>
+                </div>
+            </div>
 
             <section class="settings-block">
                 <h3>Pricing Add-Ons</h3>
@@ -190,7 +163,10 @@
                     </div>
                 </div>
 
-                <button id="saveSettings" class="primary-button">Save Add-On Settings</button>
+                <div class="button-row compact-row">
+                    <button id="saveSettings" class="primary-button">Save Add-Ons</button>
+                </div>
+
                 <p id="settingsStatus" class="status-message"></p>
             </section>
 
@@ -230,11 +206,58 @@
                     <button id="clearMaterialForm" class="small-button" type="button">Clear / New Material</button>
                 </div>
                 <p id="materialStatus" class="status-message"></p>
+
+                <button type="button" class="collapse-toggle" data-target="materialListPanel">
+                    Available Vinyls <span class="toggle-icon">▾</span>
+                </button>
+                <div id="materialListPanel" class="collapse-panel">
+                    <div id="materialList" class="material-list"></div>
+                </div>
             </section>
 
             <section class="settings-block">
-                <h3>Material List</h3>
-                <div id="materialList" class="material-list"></div>
+                <h3>Add / Update Lamination</h3>
+                <input id="editingOriginalLaminationName" type="hidden">
+
+                <div class="grid two">
+                    <div>
+                        <label for="laminationName">Lamination Name</label>
+                        <input id="laminationName" placeholder="Example: 3M Gloss" />
+                    </div>
+
+                    <div>
+                        <label for="laminationCategory">Category</label>
+                        <input id="laminationCategory" placeholder="Lamination" />
+                    </div>
+
+                    <div>
+                        <label for="laminationRollCost">Roll Cost ($)</label>
+                        <input id="laminationRollCost" class="scroll-number" type="number" step="1" min="0" />
+                    </div>
+
+                    <div>
+                        <label for="laminationRollWidth">Roll Width (inches)</label>
+                        <input id="laminationRollWidth" class="scroll-number" type="number" step="1" min="0" />
+                    </div>
+
+                    <div>
+                        <label for="laminationRollLength">Roll Length (feet)</label>
+                        <input id="laminationRollLength" class="scroll-number" type="number" step="1" min="0" />
+                    </div>
+                </div>
+
+                <div class="button-row">
+                    <button id="saveLamination" class="primary-button">Save Lamination</button>
+                    <button id="clearLaminationForm" class="small-button" type="button">Clear / New Lamination</button>
+                </div>
+                <p id="laminationStatus" class="status-message"></p>
+
+                <button type="button" class="collapse-toggle" data-target="laminationListPanel">
+                    Available Laminations <span class="toggle-icon">▾</span>
+                </button>
+                <div id="laminationListPanel" class="collapse-panel">
+                    <div id="laminationList" class="material-list"></div>
+                </div>
             </section>
         </section>
     </main>

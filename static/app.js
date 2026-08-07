@@ -1,4 +1,5 @@
 let materials = {};
+let laminations = {};
 let appSettings = {
     laminate_addon_per_sqft: 13,
     cut_addon_per_sqft: 8.5
@@ -237,6 +238,227 @@ function renderMaterialList() {
     });
 }
 
+function renderLaminationSelect(selectedName = "") {
+    const select = document.getElementById("laminationSelect");
+    select.innerHTML = "";
+
+    const names = Object.keys(laminations).sort();
+    const placeholderOption = document.createElement("option");
+    placeholderOption.value = "";
+    placeholderOption.textContent = names.length ? "Select a lamination" : "No laminations saved";
+    placeholderOption.disabled = !!names.length;
+    placeholderOption.selected = true;
+    select.appendChild(placeholderOption);
+
+    names.forEach((name) => {
+        const option = document.createElement("option");
+        option.value = name;
+        option.textContent = name;
+        if (name === selectedName) {
+            option.selected = true;
+        }
+        select.appendChild(option);
+    });
+
+    updateLaminationDetails(selectedName);
+}
+
+function updateLaminationDetails(name) {
+    const details = document.getElementById("laminationDetails");
+
+    if (!name || !laminations[name]) {
+        details.innerHTML = `<p class="panel-note">Choose a lamination to see its category and cost per sqft.</p>`;
+        return;
+    }
+
+    const lam = laminations[name];
+    const costPerSqft = getMaterialCostPerSqft(lam);
+
+    details.innerHTML = `
+        <div><strong>Category:</strong> ${lam.category || "N/A"}</div>
+        <div><strong>Roll:</strong> ${lam.roll_width_inches}" × ${lam.roll_length_feet} ft</div>
+        <div><strong>Cost / SqFt:</strong> ${formatMoney(costPerSqft)}</div>
+    `;
+}
+
+function renderLaminationList() {
+    const list = document.getElementById("laminationList");
+    list.innerHTML = "";
+
+    const names = Object.keys(laminations).sort();
+
+    if (names.length === 0) {
+        list.innerHTML = `<p class="panel-note">No laminations saved yet.</p>`;
+        return;
+    }
+
+    names.forEach((name) => {
+        const lam = laminations[name];
+        const costPerSqft = getMaterialCostPerSqft(lam);
+
+        const card = document.createElement("div");
+        card.className = "material-card";
+        card.innerHTML = `
+            <div class="material-info">
+                <strong>${name}</strong>
+                <span>${lam.category || "No category"}</span>
+                <span>Roll: ${formatMoney(lam.roll_cost)} | ${lam.roll_width_inches}" × ${lam.roll_length_feet} ft | ${formatMoney(costPerSqft)}/sqft</span>
+            </div>
+            <div class="material-actions">
+                <button class="small-button" type="button" data-edit-lamination="${name}">Edit</button>
+                <button class="danger-button" type="button" data-delete-lamination="${name}">Delete</button>
+            </div>
+        `;
+
+        list.appendChild(card);
+    });
+
+    list.querySelectorAll("[data-edit-lamination]").forEach((button) => {
+        button.addEventListener("click", () => fillLaminationForm(button.dataset.editLamination));
+    });
+
+    list.querySelectorAll("[data-delete-lamination]").forEach((button) => {
+        button.addEventListener("click", () => deleteLamination(button.dataset.deleteLamination));
+    });
+}
+
+function toggleCollapsePanel(button) {
+    const targetId = button.dataset.target;
+    const panel = document.getElementById(targetId);
+
+    if (!panel) {
+        return;
+    }
+
+    const expanded = panel.classList.toggle("expanded");
+    panel.style.maxHeight = expanded ? `${panel.scrollHeight}px` : "0px";
+    button.querySelector(".toggle-icon").textContent = expanded ? "▴" : "▾";
+}
+
+function fillLaminationForm(name) {
+    const lam = laminations[name];
+
+    if (!lam) {
+        return;
+    }
+
+    document.getElementById("editingOriginalLaminationName").value = name;
+    document.getElementById("laminationName").value = name;
+    document.getElementById("laminationCategory").value = lam.category || "";
+    document.getElementById("laminationRollCost").value = lam.roll_cost;
+    document.getElementById("laminationRollWidth").value = lam.roll_width_inches;
+    document.getElementById("laminationRollLength").value = lam.roll_length_feet;
+
+    document.getElementById("laminationStatus").textContent = `Editing ${name}. Save will overwrite this lamination.`;
+}
+
+function clearLaminationForm() {
+    document.getElementById("editingOriginalLaminationName").value = "";
+    document.getElementById("laminationName").value = "";
+    document.getElementById("laminationCategory").value = "";
+    document.getElementById("laminationRollCost").value = "";
+    document.getElementById("laminationRollWidth").value = "";
+    document.getElementById("laminationRollLength").value = "";
+    document.getElementById("laminationStatus").textContent = "Ready for a new lamination.";
+}
+
+async function saveLamination() {
+    const status = document.getElementById("laminationStatus");
+    status.classList.remove("error");
+    status.textContent = "";
+
+    const originalName = document.getElementById("editingOriginalLaminationName").value;
+    const payload = {
+        original_name: originalName,
+        name: document.getElementById("laminationName").value,
+        category: document.getElementById("laminationCategory").value,
+        roll_cost: getNumber("laminationRollCost"),
+        roll_width_inches: getNumber("laminationRollWidth"),
+        roll_length_feet: getNumber("laminationRollLength")
+    };
+
+    const response = await fetch("/api/laminations", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify(payload)
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+        status.classList.add("error");
+        status.textContent = result.error || "Could not save lamination.";
+        return;
+    }
+
+    laminations = result.laminations;
+    renderLaminationSelect(payload.name);
+    renderLaminationList();
+
+    document.getElementById("editingOriginalLaminationName").value = payload.name;
+    status.textContent = originalName ? "Lamination updated." : "Lamination saved.";
+}
+
+async function deleteLamination(name) {
+    const confirmed = window.confirm(`Delete ${name}?`);
+
+    if (!confirmed) {
+        return;
+    }
+
+    const response = await fetch(`/api/laminations/${encodeURIComponent(name)}`, {
+        method: "DELETE"
+    });
+
+    const result = await response.json();
+
+    if (!response.ok) {
+        const status = document.getElementById("laminationStatus");
+        status.classList.add("error");
+        status.textContent = result.error || "Could not delete lamination.";
+        return;
+    }
+
+    laminations = result.laminations;
+    renderLaminationSelect("");
+    renderLaminationList();
+
+    if (document.getElementById("editingOriginalLaminationName").value === name) {
+        clearLaminationForm();
+    }
+
+    document.getElementById("laminationStatus").textContent = "Lamination deleted.";
+}
+
+function loadLaminations() {
+    return fetch("/api/laminations").then((res) => res.json()).then((data) => {
+        laminations = data;
+        renderLaminationSelect();
+        renderLaminationList();
+    });
+}
+
+function toggleLaminationOptions() {
+    const jobOption = document.getElementById("jobOptionSelect").value;
+    const show = jobOption === "laminate" || jobOption === "cutlam";
+
+    document.getElementById("laminationOptions").classList.toggle("hidden", !show);
+
+    if (show) {
+        updateLaminationDetails(document.getElementById("laminationSelect").value);
+    }
+}
+
+function openTab(tabId) {
+    const buttons = document.querySelectorAll(".tab-button");
+    const panels = document.querySelectorAll(".tab-panel");
+
+    buttons.forEach((item) => item.classList.toggle("active", item.dataset.tab === tabId));
+    panels.forEach((panel) => panel.classList.toggle("active", panel.id === tabId));
+}
+
 function fillMaterialForm(name) {
     const material = materials[name];
 
@@ -397,8 +619,9 @@ function calculateSqftPrice() {
     const jobHeightFeet = getNumber("jobHeight");
     const extraFees = getNumber("extraFees");
 
-    const isCut = document.getElementById("cutAddOn").checked;
-    const isLaminated = document.getElementById("laminated").checked;
+    const jobOption = document.getElementById("jobOptionSelect").value;
+    const isCut = jobOption === "cut" || jobOption === "cutlam";
+    const isLaminated = jobOption === "laminate" || jobOption === "cutlam";
 
     const markupSelect = window.getMarkupValue();
     const markup = markupSelect === "custom" ? getNumber("customMarkup") : Number(markupSelect);
@@ -429,19 +652,6 @@ function calculateSqftPrice() {
     setText("sqftTotalResult", formatMoney(finalTotal));
 }
 
-function calculateLettersPrice() {
-    const letterCount = getNumber("letterCount");
-    const pricePerLetter = getNumber("pricePerLetter");
-    const installFee = getNumber("letterInstallFee");
-
-    const subtotal = letterCount * pricePerLetter;
-    const finalTotal = subtotal + installFee;
-
-    setText("lettersSubtotalResult", formatMoney(subtotal));
-    setText("lettersInstallResult", formatMoney(installFee));
-    setText("lettersTotalResult", formatMoney(finalTotal));
-}
-
 document.addEventListener("DOMContentLoaded", async () => {
     setupTabs();
     setupMarkupToggle();
@@ -450,10 +660,19 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     await loadSettings();
     await loadMaterials();
+    await loadLaminations();
 
     document.getElementById("calculateSqft").addEventListener("click", calculateSqftPrice);
-    document.getElementById("calculateLetters").addEventListener("click", calculateLettersPrice);
     document.getElementById("saveSettings").addEventListener("click", saveSettings);
     document.getElementById("saveMaterial").addEventListener("click", saveMaterial);
     document.getElementById("clearMaterialForm").addEventListener("click", clearMaterialForm);
+    document.getElementById("saveLamination").addEventListener("click", saveLamination);
+    document.getElementById("clearLaminationForm").addEventListener("click", clearLaminationForm);
+    document.getElementById("jobOptionSelect").addEventListener("change", toggleLaminationOptions);
+    document.getElementById("laminationSelect").addEventListener("change", (event) => updateLaminationDetails(event.target.value));
+    document.getElementById("openSettings").addEventListener("click", () => openTab("settings-tab"));
+    document.getElementById("backToCalculator").addEventListener("click", () => openTab("sqft-tab"));
+    document.querySelectorAll(".collapse-toggle").forEach((button) => {
+        button.addEventListener("click", () => toggleCollapsePanel(button));
+    });
 });

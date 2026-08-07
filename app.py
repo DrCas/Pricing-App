@@ -6,6 +6,7 @@ app = Flask(__name__)
 
 BASE_DIR = Path(__file__).resolve().parent
 MATERIALS_FILE = BASE_DIR / "materials.json"
+LAMINATES_FILE = BASE_DIR / "laminations.json"
 SETTINGS_FILE = BASE_DIR / "settings.json"
 
 
@@ -82,6 +83,61 @@ def delete_material(name):
     write_json(MATERIALS_FILE, materials)
 
     return jsonify({"success": True, "materials": materials})
+
+
+@app.route("/api/laminations", methods=["GET"])
+def get_laminations():
+    laminations = read_json(LAMINATES_FILE, {})
+    return jsonify(laminations)
+
+
+@app.route("/api/laminations", methods=["POST"])
+def save_lamination():
+    laminations = read_json(LAMINATES_FILE, {})
+    data = request.get_json() or {}
+
+    name = str(data.get("name", "")).strip()
+    original_name = str(data.get("original_name", "")).strip()
+
+    if not name:
+        return jsonify({"error": "Lamination name is required."}), 400
+
+    try:
+        lamination_data = {
+            "category": str(data.get("category", "")).strip(),
+            "roll_cost": float(data.get("roll_cost", 0)),
+            "roll_width_inches": float(data.get("roll_width_inches", 0)),
+            "roll_length_feet": float(data.get("roll_length_feet", 0)),
+        }
+        if (
+            lamination_data["roll_cost"] < 0
+            or lamination_data["roll_width_inches"] < 0
+            or lamination_data["roll_length_feet"] < 0
+        ):
+            return jsonify({"error": "Lamination numbers cannot be negative."}), 400
+    except ValueError:
+        return jsonify({"error": "Lamination numbers must be valid."}), 400
+
+    if original_name and original_name in laminations and original_name != name:
+        del laminations[original_name]
+
+    laminations[name] = lamination_data
+    write_json(LAMINATES_FILE, laminations)
+
+    return jsonify({"success": True, "laminations": laminations})
+
+
+@app.route("/api/laminations/<path:name>", methods=["DELETE"])
+def delete_lamination(name):
+    laminations = read_json(LAMINATES_FILE, {})
+
+    if name not in laminations:
+        return jsonify({"error": "Lamination not found."}), 404
+
+    del laminations[name]
+    write_json(LAMINATES_FILE, laminations)
+
+    return jsonify({"success": True, "laminations": laminations})
 
 
 @app.route("/api/settings", methods=["GET"])

@@ -3,15 +3,15 @@
 }
 
 :root {
-    --black: #050505;
-    --gold: #ffd200;
-    --gold-dark: #b99800;
-    --white: #ffffff;
-    --muted: #bdbdbd;
-    --panel: rgba(255, 255, 255, 0.08);
-    --border: rgba(255, 210, 0, 0.28);
-    --danger: #ff6961;
-    --success: #8be28b;
+    --black: #05140f;
+    --green: #3f7a4f;
+    --green-dark: #2f5d3d;
+    --white: #f4f7f1;
+    --muted: #a9b9aa;
+    --panel: rgba(255, 255, 255, 0.07);
+    --border: rgba(63, 122, 79, 0.32);
+    --danger: #ff7a7a;
+    --success: #86c28b;
 }
 
 body {
@@ -21,8 +21,8 @@ body {
     line-height: 1.5;
     color: var(--white);
     background:
-        radial-gradient(circle at top left, rgba(255, 210, 0, 0.15), transparent 35rem),
-        radial-gradient(circle at bottom right, rgba(255, 210, 0, 0.08), transparent 32rem),
+        radial-gradient(circle at top left, rgba(63, 122, 79, 0.18), transparent 35rem),
+        radial-gradient(circle at bottom right, rgba(63, 122, 79, 0.1), transparent 32rem),
         var(--black);
     min-height: 100vh;
     padding: 2rem 1rem;
@@ -43,13 +43,19 @@ body {
 }
 
 .hero {
-    padding: 3rem 2rem;
-    margin-bottom: 2rem;
-    text-align: center;
+    padding: 2rem 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.hero-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
 }
 
 .eyebrow {
-    color: var(--gold);
+    color: var(--green);
     text-transform: uppercase;
     letter-spacing: 0.14em;
     font-size: 0.8rem;
@@ -74,7 +80,7 @@ h3 {
     margin: 0 0 1rem;
     font-size: 1.1rem;
     font-weight: 600;
-    color: var(--gold);
+    color: var(--green);
 }
 
 .subtitle,
@@ -93,7 +99,8 @@ h3 {
 .tab-button,
 .primary-button,
 .small-button,
-.danger-button {
+.danger-button,
+.icon-button {
     border: none;
     border-radius: 10px;
     padding: 0.85rem 1.2rem;
@@ -116,23 +123,23 @@ h3 {
 
 .tab-button.active,
 .primary-button {
-    background: var(--gold);
-    color: #000;
+    background: var(--green);
+    color: #fff;
     transition: all 0.2s ease;
 }
 
 .primary-button:hover {
-    background: var(--gold-dark);
+    background: var(--green-dark);
 }
 
 .small-button {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(255, 255, 255, 0.08);
     color: var(--white);
     transition: all 0.2s ease;
 }
 
 .small-button:hover {
-    background: rgba(255, 255, 255, 0.15);
+    background: rgba(255, 255, 255, 0.14);
 }
 
 .danger-button {
@@ -156,16 +163,92 @@ h3 {
     display: block;
 }
 
+.calculator-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.settings-top {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+}
+
+.settings-top h2 {
+    margin-bottom: 0.25rem;
+}
+
+.settings-top .subtitle {
+    margin: 0;
+    color: var(--muted);
+}
+
 .settings-block {
-    margin-top: 2.5rem;
-    padding-top: 2rem;
-    border-top: 1px solid rgba(255, 210, 0, 0.15);
+    margin-top: 1.5rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid rgba(63, 122, 79, 0.18);
+}
+
+.settings-block:first-of-type {
+    margin-top: 0;
+    padding-top: 0;
+    border-top: none;
+}
+
+.settings-block h3 {
+    margin-bottom: 0.9rem;
+}
+
+.settings-block .grid {
+    gap: 0.9rem;
+    margin: 1rem 0;
+}
+
+.button-row {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.75rem;
+    align-items: center;
+    margin-top: 1rem;
+}
+
+.button-row.compact-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    max-width: 360px;
+    align-items: stretch;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+.button-row .primary-button,
+.button-row .small-button {
+    margin: 0;
+}
+
+.button-row .small-button {
+    width: 100%;
+    border-radius: 14px;
+    padding: 0.85rem 1.1rem;
+}
+
+.status-message {
+    min-height: 1.4rem;
+    margin: 0.9rem 0 0;
 }
 
 .grid {
     display: grid;
-    gap: 1.5rem;
-    margin: 1.5rem 0;
+    gap: 1rem;
+    margin: 1.25rem 0;
+}
+
+.grid.three {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
 .grid.two {
@@ -187,7 +270,7 @@ select {
     width: 100%;
     padding: 0.85rem 1rem;
     border-radius: 12px;
-    border: 1px solid rgba(255, 210, 0, 0.2);
+    border: 1px solid rgba(63, 122, 79, 0.2);
     background: rgba(0, 0, 0, 0.4);
     color: var(--white);
     font-size: 1rem;
@@ -203,9 +286,9 @@ select::placeholder {
 input:focus,
 select:focus {
     outline: none;
-    border-color: var(--gold);
+    border-color: var(--green);
     background: rgba(0, 0, 0, 0.5);
-    box-shadow: 0 0 0 3px rgba(255, 210, 0, 0.1);
+    box-shadow: 0 0 0 3px rgba(63, 122, 79, 0.12);
 }
 
 .material-search-wrap {
@@ -222,7 +305,7 @@ select:focus {
     width: 100%;
     padding: 0.85rem 1rem;
     border-radius: 12px;
-    border: 1px solid rgba(255, 210, 0, 0.2);
+    border: 1px solid rgba(63, 122, 79, 0.2);
     background: rgba(0, 0, 0, 0.4);
     color: var(--white);
     font-size: 1rem;
@@ -233,15 +316,15 @@ select:focus {
 }
 
 .markup-button:hover {
-    border-color: var(--gold);
+    border-color: var(--green);
     background: rgba(0, 0, 0, 0.5);
 }
 
 .markup-button:focus {
     outline: none;
-    border-color: var(--gold);
+    border-color: var(--green);
     background: rgba(0, 0, 0, 0.5);
-    box-shadow: 0 0 0 3px rgba(255, 210, 0, 0.1);
+    box-shadow: 0 0 0 3px rgba(63, 122, 79, 0.1);
 }
 
 .material-dropdown {
@@ -253,7 +336,7 @@ select:focus {
     max-height: 260px;
     overflow-y: auto;
     border-radius: 16px;
-    border: 1px solid rgba(255, 210, 0, 0.34);
+    border: 1px solid rgba(63, 122, 79, 0.34);
     background: rgba(8, 8, 8, 0.98);
     box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
 }
@@ -267,7 +350,7 @@ select:focus {
     max-height: 260px;
     overflow-y: auto;
     border-radius: 16px;
-    border: 1px solid rgba(255, 210, 0, 0.34);
+    border: 1px solid rgba(63, 122, 79, 0.34);
     background: rgba(8, 8, 8, 0.98);
     box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
 }
@@ -284,12 +367,12 @@ select:focus {
 }
 
 .material-option:hover {
-    background: rgba(255, 210, 0, 0.14);
+    background: rgba(63, 122, 79, 0.14);
 }
 
 .material-option strong {
     display: block;
-    color: var(--gold);
+    color: var(--green);
 }
 
 .material-option span {
@@ -312,17 +395,17 @@ select:focus {
 }
 
 .markup-option:hover {
-    background: rgba(255, 210, 0, 0.14);
+    background: rgba(63, 122, 79, 0.14);
 }
 
 .markup-option.active {
-    color: var(--gold);
+    color: var(--green);
     font-weight: 700;
 }
 
 .checkbox-row {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 1rem;
     margin: 1rem 0;
 }
@@ -333,26 +416,26 @@ select:focus {
     gap: 0.8rem;
     padding: 1rem;
     border-radius: 14px;
-    border: 1px solid rgba(255, 210, 0, 0.18);
+    border: 1px solid rgba(63, 122, 79, 0.18);
     background: rgba(0, 0, 0, 0.2);
     cursor: pointer;
     transition: all 0.2s ease;
 }
 
 .checkbox-card:hover {
-    border-color: rgba(255, 210, 0, 0.3);
+    border-color: rgba(63, 122, 79, 0.3);
     background: rgba(0, 0, 0, 0.25);
 }
 
 .checkbox-card input {
     width: auto;
     margin-top: 0.2rem;
-    accent-color: var(--gold);
+    accent-color: var(--green);
 }
 
 .checkbox-card strong {
     display: block;
-    color: var(--gold);
+    color: var(--green);
     margin-bottom: 0.2rem;
 }
 
@@ -368,18 +451,139 @@ select:focus {
     font-weight: 700;
     letter-spacing: 0.05em;
     text-transform: uppercase;
-    box-shadow: 0 4px 12px rgba(255, 210, 0, 0.25);
+    box-shadow: 0 4px 12px rgba(63, 122, 79, 0.25);
+}
+
+.secondary-button {
+    width: auto;
+    margin: 0;
+    font-size: 0.95rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    background: #3d4d42;
+    border: 1px solid rgba(255,255,255,0.12);
+    color: #fff;
+    border-radius: 14px;
+    padding: 0.85rem 1.25rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.18);
+    transition: all 0.2s ease;
+}
+
+.secondary-button:hover {
+    background: rgba(109, 139, 114, 0.85);
+    border-color: rgba(255,255,255,0.18);
+    transform: translateY(-1px);
+}
+
+.button-row.compact-row button,
+.settings-actions button {
+    min-height: 46px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.icon-button {
+    border: none;
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--white);
+    width: 46px;
+    height: 46px;
+    border-radius: 16px;
+    font-size: 1.1rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.icon-button:hover {
+    background: rgba(255, 255, 255, 0.16);
+    transform: translateY(-1px);
+}
+
+.checkbox-card.simple-card {
+    min-height: 84px;
+    padding: 1rem 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 18px;
+    border-color: rgba(63, 122, 79, 0.18);
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.checkbox-card.simple-card input {
+    appearance: none;
+    width: 1.2rem;
+    height: 1.2rem;
+    border-radius: 0.35rem;
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    background: rgba(255, 255, 255, 0.06);
+    cursor: pointer;
+    transition: background 0.2s ease, border-color 0.2s ease;
+}
+
+.checkbox-card.simple-card input:checked {
+    background: var(--green);
+    border-color: var(--green-dark);
+}
+
+.checkbox-card.simple-card strong {
+    display: block;
+    color: var(--white);
+    margin-bottom: 0.2rem;
+    font-size: 1rem;
+}
+
+.checkbox-card.simple-card span {
+    color: var(--muted);
+    line-height: 1.4;
+}
+
+.lamination-details {
+    margin-top: 1rem;
+    padding: 1rem;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(63, 122, 79, 0.18);
+    color: var(--muted);
+    line-height: 1.6;
+}
+
+.lamination-details strong {
+    color: var(--white);
 }
 
 .primary-button:hover {
-    box-shadow: 0 6px 16px rgba(255, 210, 0, 0.35);
+    box-shadow: 0 6px 16px rgba(63, 122, 79, 0.35);
 }
 
 .button-row {
     display: grid;
-    grid-template-columns: 1fr auto;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 0.75rem;
     align-items: center;
+}
+
+.button-row.compact-row {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    max-width: 360px;
+    align-items: stretch;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+}
+
+#customMarkupWrap {
+    margin-bottom: 1.3rem;
+}
+
+.settings-actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    justify-content: flex-end;
 }
 
 .button-row .primary-button {
@@ -389,6 +593,7 @@ select:focus {
 .results {
     display: grid;
     gap: 0.75rem;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 }
 
 .results > div,
@@ -399,13 +604,13 @@ select:focus {
     padding: 1.2rem;
     border-radius: 14px;
     background: rgba(0, 0, 0, 0.25);
-    border: 1px solid rgba(255, 210, 0, 0.08);
+    border: 1px solid rgba(63, 122, 79, 0.08);
     transition: all 0.2s ease;
 }
 
 .results > div:hover {
     background: rgba(0, 0, 0, 0.3);
-    border-color: rgba(255, 210, 0, 0.12);
+    border-color: rgba(63, 122, 79, 0.12);
 }
 
 .results span {
@@ -414,15 +619,16 @@ select:focus {
 }
 
 .results strong {
-    color: var(--gold);
+    color: var(--green);
     text-align: right;
     font-weight: 600;
 }
 
 .results .total {
-    border: 2px solid var(--gold);
-    background: rgba(255, 210, 0, 0.05);
+    border: 2px solid var(--green);
+    background: rgba(63, 122, 79, 0.08);
     margin-top: 0.5rem;
+    grid-column: 1 / -1;
 }
 
 .results .total span {
@@ -443,10 +649,47 @@ select:focus {
 .material-card {
     align-items: center;
     flex-wrap: wrap;
+    justify-content: space-between;
+}
+
+.collapse-toggle {
+    width: 100%;
+    border: none;
+    background: rgba(255, 255, 255, 0.06);
+    color: var(--white);
+    text-align: left;
+    padding: 0.95rem 1rem;
+    border-radius: 16px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.2s ease;
+    margin-top: 1rem;
+}
+
+.collapse-toggle:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.collapse-panel {
+    overflow: hidden;
+    max-height: 0;
+    transition: max-height 0.3s ease;
+}
+
+.collapse-panel.expanded {
+    margin-top: 0.75rem;
+}
+
+.toggle-icon {
+    margin-left: 0.75rem;
 }
 
 .material-info strong {
-    color: var(--gold);
+    color: var(--green);
     display: block;
     margin-bottom: 0.25rem;
 }
