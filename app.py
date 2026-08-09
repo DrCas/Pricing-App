@@ -142,11 +142,38 @@ def delete_lamination(name):
 
 @app.route("/api/settings", methods=["GET"])
 def get_settings():
-    settings = read_json(
-        SETTINGS_FILE, {"laminate_addon_per_sqft": 13, "cut_addon_per_sqft": 8.5}
-    )
+    default_settings = {
+        "cut_addon_per_sqft": 8.5,
+        "markup_presets": [
+            {"name": "Conservative", "multiplier": 2},
+            {"name": "Standard", "multiplier": 3}
+        ]
+    }
 
-    return jsonify(settings)
+    settings = read_json(SETTINGS_FILE, default_settings)
+    if not isinstance(settings, dict):
+        settings = default_settings
+
+    if "cut_addon_per_sqft" not in settings or not isinstance(settings["cut_addon_per_sqft"], (int, float)):
+        settings["cut_addon_per_sqft"] = default_settings["cut_addon_per_sqft"]
+
+    if (
+        "markup_presets" not in settings
+        or not isinstance(settings["markup_presets"], list)
+        or not settings["markup_presets"]
+    ):
+        settings["markup_presets"] = default_settings["markup_presets"]
+
+    return jsonify({
+        "cut_addon_per_sqft": float(settings["cut_addon_per_sqft"]),
+        "markup_presets": [
+            {
+                "name": str(item.get("name", "")).strip() or default_settings["markup_presets"][0]["name"],
+                "multiplier": float(item.get("multiplier", 1))
+            }
+            for item in settings["markup_presets"]
+        ]
+    })
 
 
 @app.route("/api/settings", methods=["POST"])
@@ -154,20 +181,31 @@ def save_settings():
     data = request.get_json() or {}
 
     try:
+        cut_rate = float(data.get("cut_addon_per_sqft", 8.5))
+        markup_presets = data.get("markup_presets", [])
+
+        if cut_rate < 0:
+            raise ValueError("Cut rate cannot be negative.")
+
+        if not isinstance(markup_presets, list) or not markup_presets:
+            raise ValueError("Markup presets must be a non-empty list.")
+
+        parsed_presets = []
+        for preset in markup_presets:
+            name = str(preset.get("name", "")).strip()
+            multiplier = float(preset.get("multiplier", 0))
+            if not name or multiplier <= 0:
+                raise ValueError("Each markup preset must have a valid name and multiplier.")
+            parsed_presets.append({"name": name, "multiplier": multiplier})
+
         settings = {
-            "laminate_addon_per_sqft": float(data.get("laminate_addon_per_sqft", 13)),
-            "cut_addon_per_sqft": float(data.get("cut_addon_per_sqft", 8.5)),
+            "cut_addon_per_sqft": cut_rate,
+            "markup_presets": parsed_presets
         }
-        if (
-            settings["laminate_addon_per_sqft"] < 0
-            or settings["cut_addon_per_sqft"] < 0
-        ):
-            return jsonify({"error": "Settings cannot be negative."}), 400
-    except ValueError:
-        return jsonify({"error": "Settings must be valid numbers."}), 400
+    except ValueError as exc:
+        return jsonify({"error": str(exc)}), 400
 
     write_json(SETTINGS_FILE, settings)
-
     return jsonify({"success": True, "settings": settings})
 
 

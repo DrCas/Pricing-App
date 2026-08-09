@@ -1,4 +1,17 @@
 {
-    "laminate_addon_per_sqft": 13.0,
-    "cut_addon_per_sqft": 8.5
+    "cut_addon_per_sqft": 8.5,
+    "markup_presets": [
+        {
+            "name": "Conservative",
+            "multiplier": 2.0
+        },
+        {
+            "name": "Standard",
+            "multiplier": 3.0
+        },
+        {
+            "name": "Extened",
+            "multiplier": 3.5
+        }
+    ]
 }

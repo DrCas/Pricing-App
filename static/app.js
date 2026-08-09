@@ -1,10 +1,20 @@
 let materials = {};
 let laminations = {};
 let appSettings = {
-    laminate_addon_per_sqft: 13,
-    cut_addon_per_sqft: 8.5
+    cut_addon_per_sqft: 8.5,
+    markup_presets: [
+        { name: "Conservative", multiplier: 2 },
+        { name: "Standard", multiplier: 3 }
+    ]
 };
-
+let currentMarkupValue = "";
+const jobOptionChoices = [
+   { value: "none", label: "None" },
+   { value: "cut", label: "Cut only" },
+   { value: "laminate", label: "Laminate only" },
+   { value: "cutlam", label: "Cut + Laminate" }
+];
+ 
 const moneyFormatter = new Intl.NumberFormat("en-US", {
     style: "currency",
     currency: "USD"
@@ -40,7 +50,7 @@ function setupTabs() {
 }
 
 function setupScrollWheelNumbers() {
-    const numberInputs = document.querySelectorAll(".scroll-number");
+    const numberInputs = document.querySelectorAll('input[type="number"]');
 
     numberInputs.forEach((input) => {
         input.addEventListener("wheel", (event) => {
@@ -67,8 +77,9 @@ async function loadSettings() {
     const response = await fetch("/api/settings");
     appSettings = await response.json();
 
-    document.getElementById("settingsLaminateRate").value = appSettings.laminate_addon_per_sqft;
     document.getElementById("settingsCutRate").value = appSettings.cut_addon_per_sqft;
+    renderMarkupPresetRows();
+    refreshMarkupDropdown();
 }
 
 async function saveSettings() {
@@ -76,9 +87,16 @@ async function saveSettings() {
     status.classList.remove("error");
     status.textContent = "";
 
+    const markupPresets = gatherMarkupPresets();
+    if (!markupPresets.length) {
+        status.classList.add("error");
+        status.textContent = "Please configure at least one markup preset.";
+        return;
+    }
+
     const payload = {
-        laminate_addon_per_sqft: getNumber("settingsLaminateRate"),
-        cut_addon_per_sqft: getNumber("settingsCutRate")
+        cut_addon_per_sqft: getNumber("settingsCutRate"),
+        markup_presets: markupPresets
     };
 
     const response = await fetch("/api/settings", {
@@ -98,6 +116,8 @@ async function saveSettings() {
     }
 
     appSettings = result.settings;
+    renderMarkupPresetRows();
+    refreshMarkupDropdown();
     status.textContent = "Settings saved.";
 }
 
@@ -237,9 +257,119 @@ function renderMaterialList() {
         button.addEventListener("click", () => deleteMaterial(button.dataset.deleteMaterial));
     });
 }
+ 
+function setupJobOptionDropdown() {
+    const button = document.getElementById("jobOptionButton");
+    const dropdown = document.getElementById("jobOptionDropdown");
+    const select = document.getElementById("jobOptionSelect");
+    let currentValue = select.value || "none";
+
+    function renderDropdown() {
+        dropdown.innerHTML = "";
+
+        jobOptionChoices.forEach((option) => {
+            const buttonOption = document.createElement("button");
+            buttonOption.type = "button";
+            buttonOption.className = `material-option ${option.value === currentValue ? "active" : ""}`;
+            buttonOption.textContent = option.label;
+            buttonOption.addEventListener("click", () => selectJobOption(option.value, option.label));
+            dropdown.appendChild(buttonOption);
+        });
+    }
+
+    function selectJobOption(value, label) {
+        currentValue = value;
+        select.value = value;
+        button.textContent = label;
+        dropdown.classList.add("hidden");
+        toggleLaminationOptions();
+        renderDropdown();
+    }
+
+    button.addEventListener("click", () => {
+        dropdown.classList.toggle("hidden");
+        renderDropdown();
+    });
+
+    document.addEventListener("click", (event) => {
+        if (!event.target.closest(".job-option-wrap")) {
+            dropdown.classList.add("hidden");
+        }
+    });
+
+    renderDropdown();
+}
+
+function renderLaminationDropdown(query = "") {
+    const dropdown = document.getElementById("laminationDropdown");
+    const normalizedQuery = query.trim().toLowerCase();
+    const names = Object.keys(laminations)
+        .sort()
+        .filter((name) => !normalizedQuery || name.toLowerCase().includes(normalizedQuery) || (laminations[name].category || "").toLowerCase().includes(normalizedQuery));
+
+    dropdown.innerHTML = "";
+
+    if (names.length === 0) {
+        dropdown.innerHTML = `<div class="material-option"><span>No laminations found.</span></div>`;
+        return;
+    }
+
+    names.forEach((name) => {
+        const lam = laminations[name];
+        const costPerSqft = getMaterialCostPerSqft(lam);
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "material-option";
+        button.innerHTML = `
+            <strong>${name}</strong>
+            <span>${lam.category || "No category"} | ${formatMoney(costPerSqft)}/sqft</span>
+        `;
+        button.addEventListener("click", () => selectLamination(name));
+        dropdown.appendChild(button);
+    });
+}
+
+function selectLamination(name) {
+    const searchInput = document.getElementById("laminationSearch");
+    const select = document.getElementById("laminationSelect");
+
+    if (!laminations[name]) {
+        return;
+    }
+
+    searchInput.value = name;
+    select.value = name;
+    document.getElementById("laminationDropdown").classList.add("hidden");
+    updateLaminationDetails(name);
+}
+
+function setupLaminationSearch() {
+    const searchInput = document.getElementById("laminationSearch");
+
+    searchInput.addEventListener("input", () => {
+        renderLaminationDropdown(searchInput.value);
+        document.getElementById("laminationDropdown").classList.remove("hidden");
+    });
+
+    searchInput.addEventListener("focus", () => {
+        renderLaminationDropdown(searchInput.value);
+        document.getElementById("laminationDropdown").classList.remove("hidden");
+    });
+
+    searchInput.addEventListener("blur", hideLaminationDropdownSoon);
+}
+
+function hideLaminationDropdownSoon() {
+    window.setTimeout(() => {
+        document.getElementById("laminationDropdown").classList.add("hidden");
+    }, 160);
+}
 
 function renderLaminationSelect(selectedName = "") {
     const select = document.getElementById("laminationSelect");
+    const searchInput = document.getElementById("laminationSearch");
+    const buttonLabel = selectedName || "Select a lamination";
+
     select.innerHTML = "";
 
     const names = Object.keys(laminations).sort();
@@ -260,6 +390,7 @@ function renderLaminationSelect(selectedName = "") {
         select.appendChild(option);
     });
 
+    searchInput.value = selectedName;
     updateLaminationDetails(selectedName);
 }
 
@@ -557,58 +688,147 @@ async function deleteMaterial(name) {
     document.getElementById("materialStatus").textContent = "Material deleted.";
 }
 
+function renderMarkupPresetRows() {
+    const list = document.getElementById("markupPresetsList");
+    list.innerHTML = "";
+
+    const presets = Array.isArray(appSettings.markup_presets)
+        ? appSettings.markup_presets
+        : [];
+
+    if (!presets.length) {
+        presets.push({ name: "Standard", multiplier: 3 });
+    }
+
+    presets.forEach((preset) => {
+        addMarkupPresetRow(preset.name, preset.multiplier);
+    });
+
+    if (!currentMarkupValue) {
+        currentMarkupValue = presets[0].multiplier.toString();
+    }
+}
+
+function addMarkupPresetRow(name = "", multiplier = "") {
+    const list = document.getElementById("markupPresetsList");
+    const row = document.createElement("div");
+    row.className = "markup-preset-row";
+    row.innerHTML = `
+        <div class="preset-field">
+            <label>Preset Name</label>
+            <input class="preset-name" type="text" value="${name}" placeholder="Standard" />
+        </div>
+        <div class="preset-field">
+            <label>Multiplier</label>
+            <input class="preset-multiplier scroll-number" type="number" step="0.1" min="0.1" value="${multiplier}" placeholder="3" />
+        </div>
+        <button type="button" class="small-button remove-preset">Remove</button>
+    `;
+
+    row.querySelector(".remove-preset").addEventListener("click", () => {
+        row.remove();
+        if (!document.querySelectorAll(".markup-preset-row").length) {
+            addMarkupPresetRow();
+        }
+    });
+
+    list.appendChild(row);
+}
+
+function gatherMarkupPresets() {
+    return Array.from(document.querySelectorAll(".markup-preset-row"))
+        .map((row) => {
+            const name = row.querySelector(".preset-name").value.trim();
+            const multiplier = Number(row.querySelector(".preset-multiplier").value);
+            return { name, multiplier };
+        })
+        .filter((preset) => preset.name && preset.multiplier > 0);
+}
+
+function getMarkupOptions() {
+    const presets = Array.isArray(appSettings.markup_presets) ? appSettings.markup_presets : [];
+    const options = presets.map((preset) => ({
+        value: preset.multiplier.toString(),
+        label: `${preset.name} / ${preset.multiplier}x`
+    }));
+    options.push({ value: "custom", label: "Custom" });
+    return options;
+}
+
 function setupMarkupDropdown() {
     const markupButton = document.getElementById("markupButton");
     const markupDropdown = document.getElementById("markupDropdown");
     const customWrap = document.getElementById("customMarkupWrap");
-    
-    const markupOptions = [
-        { value: "2", label: "Conservative / 2x" },
-        { value: "3", label: "Standard / 3x" },
-        { value: "custom", label: "Custom" }
-    ];
-    
-    let currentValue = "3";
-    
+
     function renderDropdown() {
+        const markupOptions = getMarkupOptions();
         markupDropdown.innerHTML = "";
         markupOptions.forEach((option) => {
             const button = document.createElement("button");
             button.type = "button";
-            button.className = `markup-option ${option.value === currentValue ? "active" : ""}`;
+            button.className = `markup-option ${option.value === currentMarkupValue ? "active" : ""}`;
             button.textContent = option.label;
-            
             button.addEventListener("click", () => selectMarkup(option.value, option.label));
             markupDropdown.appendChild(button);
         });
     }
-    
+
     function selectMarkup(value, label) {
-        currentValue = value;
+        currentMarkupValue = value;
         markupButton.textContent = label;
         markupDropdown.classList.add("hidden");
         customWrap.classList.toggle("hidden", value !== "custom");
         renderDropdown();
     }
-    
+
     markupButton.addEventListener("click", () => {
         markupDropdown.classList.toggle("hidden");
         renderDropdown();
     });
-    
+
     document.addEventListener("click", (event) => {
         if (!event.target.closest(".markup-search-wrap")) {
             markupDropdown.classList.add("hidden");
         }
     });
-    
+
+    window.getMarkupValue = () => currentMarkupValue;
+
+    function resetCurrentMarkupValue() {
+        const presetOptions = getMarkupOptions().filter((option) => option.value !== "custom");
+        currentMarkupValue = presetOptions.length ? presetOptions[0].value : "custom";
+        markupButton.textContent = presetOptions.length
+            ? presetOptions[0].label
+            : "Custom";
+        customWrap.classList.toggle("hidden", currentMarkupValue !== "custom");
+    }
+
+    function refreshMarkupDropdown() {
+        const markupOptions = getMarkupOptions();
+        if (!markupOptions.some((option) => option.value === currentMarkupValue)) {
+            resetCurrentMarkupValue();
+        }
+        renderDropdown();
+    }
+
+    document.refreshMarkupDropdown = refreshMarkupDropdown;
+    resetCurrentMarkupValue();
     renderDropdown();
-    
-    window.getMarkupValue = () => currentValue;
+}
+
+function refreshMarkupDropdown() {
+    if (typeof document.refreshMarkupDropdown === "function") {
+        document.refreshMarkupDropdown();
+    }
 }
 
 function setupMarkupToggle() {
     setupMarkupDropdown();
+}
+
+function setupSettingsInteractions() {
+    const addPresetButton = document.getElementById("addMarkupPreset");
+    addPresetButton.addEventListener("click", () => addMarkupPresetRow());
 }
 
 function calculateSqftPrice() {
@@ -630,22 +850,32 @@ function calculateSqftPrice() {
     const rollSqft = rollWidthFeet * rollLengthFeet;
     const costPerSqft = rollSqft > 0 ? rollCost / rollSqft : 0;
 
-    const baseSellPerSqft = costPerSqft * markup;
-    const laminateAddon = isLaminated ? Number(appSettings.laminate_addon_per_sqft) : 0;
-    const cutAddon = isCut ? Number(appSettings.cut_addon_per_sqft) : 0;
-    const finalSellPerSqft = baseSellPerSqft + laminateAddon + cutAddon;
+    const materialBasePerSqft = costPerSqft;
+    const materialMarkupPerSqft = costPerSqft * (markup - 1);
+    const materialSellPerSqft = materialBasePerSqft + materialMarkupPerSqft;
+
+    const selectedLamination = laminations[document.getElementById("laminationSelect").value];
+    const laminationBasePerSqft = isLaminated && selectedLamination ? getMaterialCostPerSqft(selectedLamination) : 0;
+    const laminationMarkupPerSqft = isLaminated ? laminationBasePerSqft * (markup - 1) : 0;
+    const laminationSellPerSqft = laminationBasePerSqft + laminationMarkupPerSqft;
+
+    const cutAddonPerSqft = isCut ? Number(appSettings.cut_addon_per_sqft) : 0;
+    const finalSellPerSqft = materialSellPerSqft + laminationSellPerSqft + cutAddonPerSqft;
 
     const billableWidth = isCut ? jobWidthFeet + 1 : jobWidthFeet;
     const billableHeight = isCut ? jobHeightFeet + 1 : jobHeightFeet;
     const billableSqft = billableWidth * billableHeight;
 
-    const finalTotal = billableSqft * finalSellPerSqft + extraFees;
+    const materialBillableAmount = billableSqft * materialSellPerSqft;
+    const laminationBillableAmount = billableSqft * laminationSellPerSqft;
+    const cutBillableAmount = billableSqft * cutAddonPerSqft;
+    const finalTotal = materialBillableAmount + laminationBillableAmount + cutBillableAmount + extraFees;
 
-    setText("rollSqftResult", `${rollSqft.toFixed(2)} sqft`);
-    setText("costPerSqftResult", formatMoney(costPerSqft));
-    setText("baseSellPerSqftResult", formatMoney(baseSellPerSqft));
-    setText("laminateAddonResult", formatMoney(laminateAddon));
-    setText("cutAddonResult", formatMoney(cutAddon));
+    setText("materialBasePerSqft", formatMoney(materialBasePerSqft));
+    setText("materialMarkupPerSqft", formatMoney(materialMarkupPerSqft));
+    setText("laminationBasePerSqft", formatMoney(laminationBasePerSqft));
+    setText("laminationMarkupPerSqft", formatMoney(laminationMarkupPerSqft));
+    setText("cutAddonPerSqft", formatMoney(cutAddonPerSqft));
     setText("sellPerSqftResult", formatMoney(finalSellPerSqft));
     setText("billableSizeResult", `${billableWidth.toFixed(2)} ft × ${billableHeight.toFixed(2)} ft`);
     setText("billableSqftResult", `${billableSqft.toFixed(2)} sqft`);
@@ -656,11 +886,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     setupTabs();
     setupMarkupToggle();
     setupMaterialSearch();
+    setupJobOptionDropdown();
+    setupLaminationSearch();
     setupScrollWheelNumbers();
 
     await loadSettings();
     await loadMaterials();
     await loadLaminations();
+
+    setupSettingsInteractions();
 
     document.getElementById("calculateSqft").addEventListener("click", calculateSqftPrice);
     document.getElementById("saveSettings").addEventListener("click", saveSettings);
@@ -668,10 +902,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("clearMaterialForm").addEventListener("click", clearMaterialForm);
     document.getElementById("saveLamination").addEventListener("click", saveLamination);
     document.getElementById("clearLaminationForm").addEventListener("click", clearLaminationForm);
-    document.getElementById("jobOptionSelect").addEventListener("change", toggleLaminationOptions);
-    document.getElementById("laminationSelect").addEventListener("change", (event) => updateLaminationDetails(event.target.value));
     document.getElementById("openSettings").addEventListener("click", () => openTab("settings-tab"));
     document.getElementById("backToCalculator").addEventListener("click", () => openTab("sqft-tab"));
+    document.getElementById("addMarkupPreset").addEventListener("click", () => addMarkupPresetRow());
     document.querySelectorAll(".collapse-toggle").forEach((button) => {
         button.addEventListener("click", () => toggleCollapsePanel(button));
     });

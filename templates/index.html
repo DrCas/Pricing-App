@@ -41,7 +41,7 @@
 
                 <div>
                     <label for="jobWidth">Job Width (feet)</label>
-                    <input id="jobWidth" class="scroll-number" type="number" step="1" min="0" placeholder="4">
+                    <input id="jobWidth" class="scroll-number" type="number" step="0.1" min="0" value="4.5" placeholder="4.5">
                 </div>
 
                 <div>
@@ -56,7 +56,7 @@
             </div>
 
             <div class="grid two">
-                <div>
+                <div class="field-card">
                     <label for="markupSearch">Markup</label>
                     <div class="markup-search-wrap">
                         <button id="markupButton" class="markup-button" type="button">Standard / 3x</button>
@@ -64,14 +64,18 @@
                     </div>
                 </div>
 
-                <div>
-                    <label for="jobOptionSelect">Job Option</label>
-                    <select id="jobOptionSelect" class="scroll-number">
-                        <option value="none">None</option>
-                        <option value="cut">Cut only</option>
-                        <option value="laminate">Laminate only</option>
-                        <option value="cutlam">Cut + Laminate</option>
-                    </select>
+                <div class="field-card">
+                    <label for="jobOptionButton">Job Option</label>
+                    <div class="material-search-wrap job-option-wrap">
+                        <button id="jobOptionButton" class="markup-button" type="button">None</button>
+                        <div id="jobOptionDropdown" class="material-dropdown hidden"></div>
+                        <select id="jobOptionSelect" class="hidden" aria-hidden="true">
+                            <option value="none">None</option>
+                            <option value="cut">Cut only</option>
+                            <option value="laminate">Laminate only</option>
+                            <option value="cutlam">Cut + Laminate</option>
+                        </select>
+                    </div>
                 </div>
             </div>
 
@@ -83,8 +87,12 @@
             <div id="laminationOptions" class="hidden">
                 <div class="grid two">
                     <div>
-                        <label for="laminationSelect">Lamination Type</label>
-                        <select id="laminationSelect"></select>
+                        <label for="laminationSearch">Lamination Type</label>
+                        <div class="material-search-wrap lamination-search-wrap">
+                            <input id="laminationSearch" autocomplete="off" placeholder="Select a lamination" />
+                            <div id="laminationDropdown" class="material-dropdown hidden"></div>
+                            <select id="laminationSelect" class="hidden" aria-hidden="true"></select>
+                        </div>
                     </div>
                     <div class="lamination-info">
                         <div id="laminationDetails" class="lamination-details"></div>
@@ -98,41 +106,52 @@
             </div>
 
             <div class="results">
-                <div>
-                    <span>Roll SqFt</span>
-                    <strong id="rollSqftResult">0 sqft</strong>
+                <div class="results-grid">
+                    <div class="price-card">
+                        <div>
+                            <span>Material Base / SqFt</span>
+                            <strong id="materialBasePerSqft">$0.00</strong>
+                        </div>
+                        <div>
+                            <span>Material Markup / SqFt</span>
+                            <strong id="materialMarkupPerSqft">$0.00</strong>
+                        </div>
+                    </div>
+                    <div class="price-card">
+                        <div>
+                            <span>Lamination Base / SqFt</span>
+                            <strong id="laminationBasePerSqft">$0.00</strong>
+                        </div>
+                        <div>
+                            <span>Lamination Markup / SqFt</span>
+                            <strong id="laminationMarkupPerSqft">$0.00</strong>
+                        </div>
+                    </div>
+                    <div class="price-card">
+                        <div>
+                            <span>Cut Add-On / SqFt</span>
+                            <strong id="cutAddonPerSqft">$0.00</strong>
+                        </div>
+                    </div>
                 </div>
-                <div>
-                    <span>Material Cost / SqFt</span>
-                    <strong id="costPerSqftResult">$0.00</strong>
-                </div>
-                <div>
-                    <span>Base Sell Price / SqFt</span>
-                    <strong id="baseSellPerSqftResult">$0.00</strong>
-                </div>
-                <div>
-                    <span>Laminate Add-On / SqFt</span>
-                    <strong id="laminateAddonResult">$0.00</strong>
-                </div>
-                <div>
-                    <span>Cut Add-On / SqFt</span>
-                    <strong id="cutAddonResult">$0.00</strong>
-                </div>
-                <div>
-                    <span>Final Sell Price / SqFt</span>
-                    <strong id="sellPerSqftResult">$0.00</strong>
-                </div>
-                <div>
-                    <span>Billable Size</span>
-                    <strong id="billableSizeResult">0 ft × 0 ft</strong>
-                </div>
-                <div>
-                    <span>Billable SqFt</span>
-                    <strong id="billableSqftResult">0 sqft</strong>
-                </div>
-                <div class="total">
-                    <span>Total Price</span>
-                    <strong id="sqftTotalResult">$0.00</strong>
+
+                <div class="summary-grid">
+                    <div class="summary-card">
+                        <span>Final Sell / SqFt</span>
+                        <strong id="sellPerSqftResult">$0.00</strong>
+                    </div>
+                    <div class="summary-card">
+                        <span>Billable Size</span>
+                        <strong id="billableSizeResult">0 ft × 0 ft</strong>
+                    </div>
+                    <div class="summary-card">
+                        <span>Billable SqFt</span>
+                        <strong id="billableSqftResult">0 sqft</strong>
+                    </div>
+                    <div class="summary-card total-card">
+                        <span>Total Price</span>
+                        <strong id="sqftTotalResult">$0.00</strong>
+                    </div>
                 </div>
             </div>
         </section>
@@ -153,20 +172,21 @@
 
                 <div class="grid two">
                     <div>
-                        <label for="settingsLaminateRate">Laminate Add-On ($/sqft)</label>
-                        <input id="settingsLaminateRate" class="scroll-number" type="number" step="1" min="0">
-                    </div>
-
-                    <div>
                         <label for="settingsCutRate">Cut Add-On ($/sqft)</label>
-                        <input id="settingsCutRate" class="scroll-number" type="number" step="1" min="0">
+                        <input id="settingsCutRate" class="scroll-number" type="number" step="0.1" min="0">
                     </div>
                 </div>
+
+                <h4>Markup Presets</h4>
+                <div id="markupPresetsList" class="markup-presets-list"></div>
+
+                <button id="addMarkupPreset" class="small-button" type="button">Add Markup Preset</button>
 
                 <div class="button-row compact-row">
                     <button id="saveSettings" class="primary-button">Save Add-Ons</button>
                 </div>
 
+                <p class="panel-note">Lamination pricing uses the selected markup preset instead of a fixed laminate add-on.</p>
                 <p id="settingsStatus" class="status-message"></p>
             </section>
 
